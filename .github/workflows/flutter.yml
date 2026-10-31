@@ -32,7 +32,9 @@ jobs:
           cache: true
 
       - name: Resolve dependencies
-        run: flutter pub get
+        run: |
+          flutter pub get
+          (cd packages/kankal_ui/example && flutter pub get)
 
       - name: Check formatting
         run: >-
