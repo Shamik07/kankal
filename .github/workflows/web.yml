@@ -1,0 +1,89 @@
+name: Web
+
+on:
+  push:
+    paths:
+      - 'web/**'
+      - 'rust/**'
+      - '.github/workflows/web.yml'
+  pull_request:
+    paths:
+      - 'web/**'
+      - 'rust/**'
+      - '.github/workflows/web.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: web-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:18.6
+        env:
+          POSTGRES_PASSWORD: postgres
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    defaults:
+      run:
+        working-directory: web
+    steps:
+      - uses: actions/checkout@v7
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          toolchain: '1.95.0'
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+      - name: Lint
+        run: bun run lint
+      - name: Run unit tests
+        run: bun run test
+      - name: Typecheck
+        run: bun run typecheck
+      - name: Build
+        run: bun run build
+      - name: Build component workbench
+        run: bun run build:storybook
+      - name: Install Chrome for Playwright
+        run: bunx playwright install --with-deps chrome
+      - name: Prepare isolated workspace service
+        working-directory: rust
+        env:
+          KANKAL_TEST_DATABASE_URL: postgres://postgres:postgres@127.0.0.1:5432/postgres
+        run: |
+          cargo test --locked --test workspace_journey -- --ignored
+          cargo build --locked --bin kankal-grpc
+      - name: Run browser journey
+        env:
+          KANKAL_DATABASE_URL: postgres://postgres:postgres@127.0.0.1:5432/postgres
+        run: |
+          (cd ../rust && exec target/debug/kankal-grpc) > /tmp/kankal-web-ci.log 2>&1 &
+          server_pid=$!
+          trap 'kill "$server_pid" 2>/dev/null || true' EXIT
+          for attempt in $(seq 1 30); do
+            if nc -z 127.0.0.1 50051; then break; fi
+            sleep 1
+          done
+          if ! nc -z 127.0.0.1 50051; then cat /tmp/kankal-web-ci.log; exit 1; fi
+          bun run test:e2e:check
+      - name: Upload Playwright traces
+        if: failure()
+        uses: actions/upload-artifact@v7
+        with:
+          name: web-playwright-results
+          path: web/test-results/
+          if-no-files-found: ignore

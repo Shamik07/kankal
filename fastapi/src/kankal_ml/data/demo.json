@@ -1,0 +1,51 @@
+{
+  "documents": [
+    {"id": "account-access", "topic": "account", "text": "To reset your password, open account settings and request a password reset link."},
+    {"id": "two-factor", "topic": "account", "text": "Enable two-factor authentication in account security settings."},
+    {"id": "billing-cycle", "topic": "billing", "text": "Invoices are created at the end of each monthly billing cycle."},
+    {"id": "refunds", "topic": "billing", "text": "Refund requests are reviewed within five business days."},
+    {"id": "api-keys", "topic": "developer", "text": "Create and rotate API keys in the developer console."},
+    {"id": "rate-limits", "topic": "developer", "text": "The API returns a rate limit response when callers send too many requests."}
+  ],
+  "tickets": [
+    {"text": "I cannot log in to my account", "label": "account"},
+    {"text": "Please help me reset my password", "label": "account"},
+    {"text": "My two factor code does not work", "label": "account"},
+    {"text": "The sign in page rejects my password", "label": "account"},
+    {"text": "I need a copy of my invoice", "label": "billing"},
+    {"text": "The monthly charge on my bill looks wrong", "label": "billing"},
+    {"text": "Can I get a refund for this payment", "label": "billing"},
+    {"text": "My credit card payment failed", "label": "billing"},
+    {"text": "How do I create an API key", "label": "developer"},
+    {"text": "The API returns a rate limit error", "label": "developer"},
+    {"text": "Where is the webhook documentation", "label": "developer"},
+    {"text": "My integration cannot call the API", "label": "developer"}
+  ],
+  "products": [
+    {"id": "notebook", "text": "Paper notebook for handwritten notes"},
+    {"id": "journal", "text": "Hardcover journal for daily handwritten notes"},
+    {"id": "pen", "text": "Blue ink pen for writing"},
+    {"id": "pencil", "text": "Graphite pencil for drawing and writing"},
+    {"id": "mug", "text": "Ceramic mug for hot tea"},
+    {"id": "cup", "text": "Glass cup for tea and coffee"}
+  ],
+  "sensor_training": [[20, 40], [21, 39], [22, 41], [19, 38], [20, 42], [23, 40], [18, 39], [21, 43], [22, 38], [20, 37], [19, 41], [23, 42], [21, 40], [20, 39], [22, 43], [18, 40]],
+  "risk_training": [
+    {"features": [1, 20], "label": 0}, {"features": [2, 25], "label": 0},
+    {"features": [3, 30], "label": 0}, {"features": [4, 35], "label": 0},
+    {"features": [5, 40], "label": 0}, {"features": [6, 45], "label": 0},
+    {"features": [7, 60], "label": 1}, {"features": [8, 65], "label": 1},
+    {"features": [9, 70], "label": 1}, {"features": [10, 75], "label": 1},
+    {"features": [11, 80], "label": 1}, {"features": [12, 85], "label": 1}
+  ],
+  "price_training": [
+    {"features": [1, 1], "value": 12}, {"features": [2, 1], "value": 18},
+    {"features": [3, 1], "value": 24}, {"features": [4, 1], "value": 30},
+    {"features": [1, 2], "value": 16}, {"features": [2, 2], "value": 24},
+    {"features": [3, 2], "value": 32}, {"features": [4, 2], "value": 40}
+  ],
+  "demand": {
+    "notebooks": [12, 13, 14, 15, 16, 17, 18, 19],
+    "mugs": [8, 9, 9, 10, 10, 11, 11, 12]
+  }
+}

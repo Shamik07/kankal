@@ -1,0 +1,76 @@
+name: FastAPI AI/ML
+
+on:
+  push:
+    paths:
+      - 'fastapi/**'
+      - '.github/workflows/fastapi.yml'
+  pull_request:
+    paths:
+      - 'fastapi/**'
+      - '.github/workflows/fastapi.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: fastapi-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    defaults:
+      run:
+        working-directory: fastapi
+    steps:
+      - uses: actions/checkout@v7
+      - uses: astral-sh/setup-uv@v8
+        with:
+          version: '0.12.2'
+          enable-cache: true
+          cache-dependency-glob: fastapi/uv.lock
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.14'
+      - name: Install locked dependencies
+        run: uv sync --locked
+      - name: Check formatting
+        run: uv run --locked ruff format --check src tests scripts
+      - name: Lint
+        run: uv run --locked ruff check src tests scripts
+      - name: Type check
+        run: uv run --locked mypy
+      - name: Test API and local HTTP journey
+        run: uv run --locked pytest -q --junitxml=pytest-results.xml
+      - name: Require executed, unskipped tests
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          import xml.etree.ElementTree as ET
+          report = Path('pytest-results.xml')
+          if not report.is_file():
+              raise SystemExit('Pytest report is missing')
+          root = ET.parse(report).getroot()
+          suites = [root] if root.tag == 'testsuite' else root.findall('testsuite')
+          total = sum(int(s.get('tests', 0)) for s in suites)
+          skipped = sum(int(s.get('skipped', 0)) for s in suites)
+          print(f'{total - skipped} executed, {skipped} skipped')
+          if total == 0 or skipped:
+              raise SystemExit('The API journey gate must run without skips')
+          PY
+      - name: Audit dependencies
+        run: uv run --locked pip-audit --progress-spinner off
+      - name: Build package
+        run: uv build --no-sources
+      - name: Build container
+        run: docker build -t kankal-ml:test .
+      - name: Retain test report
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: fastapi-pytest-results
+          path: fastapi/pytest-results.xml
+          if-no-files-found: warn

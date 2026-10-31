@@ -1,0 +1,313 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "Kankal API",
+    "version": "1.0.0",
+    "description": "HTTP API for process health checks and item management. Items are durable when PostgreSQL is configured; otherwise they remain in memory. The service does not provide user identity or per-item ownership."
+  },
+  "servers": [
+    {
+      "url": "/",
+      "description": "This API host"
+    }
+  ],
+  "tags": [
+    { "name": "Health", "description": "Public process health checks." },
+    { "name": "Items", "description": "Items use one shared configured bearer token." }
+  ],
+  "paths": {
+    "/live": {
+      "get": {
+        "tags": ["Health"],
+        "summary": "Check that the process is live",
+        "description": "Returns a fixed liveness status. This route does not require authentication.",
+        "operationId": "getLiveStatus",
+        "security": [],
+        "responses": {
+          "200": {
+            "description": "The process reports that it is live.",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/HealthStatus" },
+                "example": { "status": "live" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/ready": {
+      "get": {
+        "tags": ["Health"],
+        "summary": "Check that the process is ready",
+        "description": "Reports readiness and checks PostgreSQL connectivity when configured. This route does not require authentication.",
+        "operationId": "getReadyStatus",
+        "security": [],
+        "responses": {
+          "200": {
+            "description": "The process reports that it is ready.",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/HealthStatus" },
+                "example": { "status": "ready" }
+              }
+            }
+          },
+          "503": { "$ref": "#/components/responses/ServiceUnavailable" }
+        }
+      }
+    },
+    "/api/items": {
+      "get": {
+        "tags": ["Items"],
+        "summary": "List items",
+        "description": "Returns all items in creation order. There is no pagination. Items survive process restart when PostgreSQL is configured.",
+        "operationId": "listItems",
+        "security": [{ "bearerAuth": [] }],
+        "responses": {
+          "200": {
+            "description": "The item collection, or an empty array when there are no items.",
+            "content": {
+              "application/json": {
+                "schema": { "type": "array", "items": { "$ref": "#/components/schemas/Item" } },
+                "example": [
+                  { "id": "0123456789abcdef0123456789abcdef", "title": "Buy tea", "description": "Green tea" }
+                ]
+              }
+            }
+          },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "500": { "$ref": "#/components/responses/InternalError" },
+          "503": { "$ref": "#/components/responses/ServiceUnavailable" }
+        }
+      },
+      "post": {
+        "tags": ["Items"],
+        "summary": "Create an item",
+        "description": "Creates an item. The request body is limited to 1 MiB. Title must not be blank and must be at most 200 Unicode characters. Description is optional and limited to 2,000 Unicode characters; an omitted description is stored as an empty string.",
+        "operationId": "createItem",
+        "security": [{ "bearerAuth": [] }],
+        "requestBody": { "$ref": "#/components/requestBodies/ItemInput" },
+        "responses": {
+          "201": {
+            "description": "The item was created. The Location header contains its relative resource path.",
+            "headers": {
+              "Location": {
+                "description": "Relative path of the created item.",
+                "schema": { "type": "string", "example": "/api/items/0123456789abcdef0123456789abcdef" }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Item" },
+                "example": { "id": "0123456789abcdef0123456789abcdef", "title": "Buy tea", "description": "Green tea" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/InvalidJSON" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "413": { "$ref": "#/components/responses/PayloadTooLarge" },
+          "500": { "$ref": "#/components/responses/InternalError" },
+          "503": { "$ref": "#/components/responses/ServiceUnavailable" }
+        }
+      }
+    },
+    "/api/items/{id}": {
+      "parameters": [
+        {
+          "name": "id",
+          "in": "path",
+          "required": true,
+          "description": "Server-generated item identifier.",
+          "schema": { "type": "string", "pattern": "^[0-9a-f]{32}$" },
+          "example": "0123456789abcdef0123456789abcdef"
+        }
+      ],
+      "get": {
+        "tags": ["Items"],
+        "summary": "Get an item",
+        "operationId": "getItem",
+        "security": [{ "bearerAuth": [] }],
+        "responses": {
+          "200": {
+            "description": "The requested item.",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Item" },
+                "example": { "id": "0123456789abcdef0123456789abcdef", "title": "Buy tea", "description": "Green tea" }
+              }
+            }
+          },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "500": { "$ref": "#/components/responses/InternalError" },
+          "503": { "$ref": "#/components/responses/ServiceUnavailable" }
+        }
+      },
+      "put": {
+        "tags": ["Items"],
+        "summary": "Replace an item",
+        "description": "Replaces both title and description. The request body is limited to 1 MiB. Title must not be blank and must be at most 200 Unicode characters. Description is optional and limited to 2,000 Unicode characters; an omitted description is stored as an empty string.",
+        "operationId": "replaceItem",
+        "security": [{ "bearerAuth": [] }],
+        "requestBody": { "$ref": "#/components/requestBodies/ItemInput" },
+        "responses": {
+          "200": {
+            "description": "The updated item.",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Item" },
+                "example": { "id": "0123456789abcdef0123456789abcdef", "title": "Buy tea", "description": "Green tea" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/InvalidJSON" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "413": { "$ref": "#/components/responses/PayloadTooLarge" },
+          "500": { "$ref": "#/components/responses/InternalError" },
+          "503": { "$ref": "#/components/responses/ServiceUnavailable" }
+        }
+      },
+      "delete": {
+        "tags": ["Items"],
+        "summary": "Delete an item",
+        "operationId": "deleteItem",
+        "security": [{ "bearerAuth": [] }],
+        "responses": {
+          "204": { "description": "The item was deleted. The response has no body." },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "500": { "$ref": "#/components/responses/InternalError" },
+          "503": { "$ref": "#/components/responses/ServiceUnavailable" }
+        }
+      }
+    }
+  },
+  "components": {
+    "securitySchemes": {
+      "bearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "description": "Shared service token configured by KANKAL_BEARER_TOKEN. The configured value must contain at least 32 bytes and have no leading or trailing whitespace. This credential does not identify a user."
+      }
+    },
+    "schemas": {
+      "HealthStatus": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["status"],
+        "properties": {
+          "status": { "type": "string", "enum": ["live", "ready"] }
+        }
+      },
+      "Item": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "title", "description"],
+        "properties": {
+          "id": { "type": "string", "pattern": "^[0-9a-f]{32}$", "description": "Generated by the server." },
+          "title": { "type": "string", "minLength": 1, "maxLength": 200, "pattern": "\\S" },
+          "description": { "type": "string", "maxLength": 2000 }
+        }
+      },
+      "ItemInput": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["title"],
+        "properties": {
+          "title": { "type": "string", "minLength": 1, "maxLength": 200, "pattern": "\\S", "description": "Must contain at least one non-whitespace character." },
+          "description": { "type": "string", "maxLength": 2000, "description": "Optional. Omitted values are stored as the empty string." }
+        }
+      },
+      "Error": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["error"],
+        "properties": {
+          "error": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["code", "message"],
+            "properties": {
+              "code": { "type": "string" },
+              "message": { "type": "string" }
+            }
+          }
+        }
+      }
+    },
+    "requestBodies": {
+      "ItemInput": {
+        "required": true,
+        "description": "Exactly one JSON object. Request bodies are limited to 1 MiB. Unknown fields and trailing JSON values are rejected.",
+        "content": {
+          "application/json": {
+            "schema": { "$ref": "#/components/schemas/ItemInput" },
+            "example": { "title": "Buy tea", "description": "Green tea" }
+          }
+        }
+      }
+    },
+    "responses": {
+      "InvalidJSON": {
+        "description": "The request is invalid because its JSON is malformed, has unknown fields or trailing values, or its item fields fail validation. The fixed code and message identify the failure category.",
+        "content": {
+          "application/json": {
+            "schema": { "$ref": "#/components/schemas/Error" },
+            "examples": {
+              "invalidJSON": { "value": { "error": { "code": "invalid_json", "message": "request body must be a valid JSON object" } } },
+              "extraJSON": { "value": { "error": { "code": "invalid_json", "message": "request body must contain one JSON object" } } },
+              "invalidItem": { "value": { "error": { "code": "invalid_item", "message": "title is required and must be 1 to 200 characters; description must be at most 2000 characters" } } }
+            }
+          }
+        }
+      },
+      "Unauthorized": {
+        "description": "The bearer token is missing or invalid.",
+        "content": {
+          "application/json": {
+            "schema": { "$ref": "#/components/schemas/Error" },
+            "example": { "error": { "code": "unauthorized", "message": "valid bearer token required" } }
+          }
+        }
+      },
+      "NotFound": {
+        "description": "No item exists with this identifier.",
+        "content": {
+          "application/json": {
+            "schema": { "$ref": "#/components/schemas/Error" },
+            "example": { "error": { "code": "not_found", "message": "item not found" } }
+          }
+        }
+      },
+      "PayloadTooLarge": {
+        "description": "The request body exceeds 1 MiB.",
+        "content": {
+          "application/json": {
+            "schema": { "$ref": "#/components/schemas/Error" },
+            "example": { "error": { "code": "payload_too_large", "message": "request body exceeds 1 MiB" } }
+          }
+        }
+      },
+      "ServiceUnavailable": {
+        "description": "The configured database is unavailable.",
+        "content": {
+          "application/json": {
+            "schema": { "$ref": "#/components/schemas/Error" },
+            "example": { "error": { "code": "service_unavailable", "message": "database unavailable" } }
+          }
+        }
+      },
+      "InternalError": {
+        "description": "An unexpected internal failure occurred.",
+        "content": {
+          "application/json": {
+            "schema": { "$ref": "#/components/schemas/Error" },
+            "example": { "error": { "code": "internal_error", "message": "an unexpected error occurred" } }
+          }
+        }
+      }
+    }
+  }
+}

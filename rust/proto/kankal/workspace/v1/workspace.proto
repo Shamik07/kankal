@@ -1,0 +1,64 @@
+syntax = "proto3";
+
+package kankal.workspace.v1;
+
+// User-facing workspace operations. Authentication is carried by the session.
+service WorkspaceService {
+  rpc SignIn(SignInRequest) returns (SignInResponse);
+  rpc GetSession(GetSessionRequest) returns (GetSessionResponse);
+  rpc SignOut(SignOutRequest) returns (SignOutResponse);
+  rpc ListItems(ListItemsRequest) returns (ListItemsResponse);
+  rpc CreateItem(CreateItemRequest) returns (CreateItemResponse);
+  rpc UpdateItem(UpdateItemRequest) returns (UpdateItemResponse);
+  rpc DeleteItem(DeleteItemRequest) returns (DeleteItemResponse);
+}
+
+message Session {
+  string id = 1;
+  string email = 2;
+}
+
+message Item {
+  string id = 1;
+  string title = 2;
+  string description = 3;
+  string created_at = 4;
+  string updated_at = 5;
+}
+
+message SignInRequest {
+  string email = 1;
+  string password = 2;
+}
+message GetSessionRequest {}
+message SignOutRequest {}
+message SignOutResponse {}
+message SignInResponse {
+  Session session = 1;
+}
+message GetSessionResponse {
+  Session session = 1;
+}
+message ListItemsRequest {}
+message ListItemsResponse {
+  repeated Item items = 1;
+}
+message CreateItemRequest {
+  string title = 1;
+  string description = 2;
+}
+message UpdateItemRequest {
+  string id = 1;
+  string title = 2;
+  string description = 3;
+}
+message CreateItemResponse {
+  Item item = 1;
+}
+message UpdateItemResponse {
+  Item item = 1;
+}
+message DeleteItemRequest {
+  string id = 1;
+}
+message DeleteItemResponse {}

@@ -1,0 +1,113 @@
+name: Flutter
+
+on:
+  push:
+    paths:
+      - 'flutter/**'
+      - '.github/workflows/flutter.yml'
+  pull_request:
+    paths:
+      - 'flutter/**'
+      - '.github/workflows/flutter.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: macos-latest
+    defaults:
+      run:
+        working-directory: flutter
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v6
+
+      - name: Set up Flutter from FVM version
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version-file: flutter/.fvmrc
+          channel: stable
+          cache: true
+
+      - name: Resolve dependencies
+        run: flutter pub get
+
+      - name: Check formatting
+        run: >-
+          dart format --output=none --set-exit-if-changed
+          lib test integration_test
+          packages/kankal_ui/lib packages/kankal_ui/test
+          packages/kankal_ui/example/lib
+
+      - name: Analyze application and UI package
+        run: |
+          flutter analyze
+          dart analyze packages/kankal_ui
+
+      - name: Test authentication, items, and diagnostics
+        run: flutter test test/core/auth/mock_auth_api_test.dart test/core/items/mock_items_api_test.dart test/core/diagnostics/diagnostics_test.dart
+
+      - name: Test application widgets and view models
+        run: flutter test test/widget_test.dart test/features/items/items_view_model_test.dart test/features/items/item_editor_view_model_test.dart
+
+      - name: Test shared UI package
+        run: flutter test packages/kankal_ui/test
+
+      - name: Run signed-in item journey on macOS
+        env:
+          LANG: en_US.UTF-8
+          LC_ALL: en_US.UTF-8
+        run: flutter test integration_test/mock_item_journey_test.dart -d macos
+
+      - name: Build Android debug APK
+        run: flutter build apk --debug
+
+      - name: Build iOS simulator app
+        run: flutter build ios --simulator --no-codesign
+
+      - name: Build shared UI example for web
+        working-directory: flutter/packages/kankal_ui/example
+        run: |
+          flutter pub get
+          flutter analyze
+          flutter build web
+          flutter build web -t lib/widgetbook.dart
+
+  desktop-smoke:
+    if: github.event_name == 'workflow_dispatch'
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-latest
+            target: linux
+          - os: windows-latest
+            target: windows
+    runs-on: ${{ matrix.os }}
+    defaults:
+      run:
+        working-directory: flutter
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v6
+
+      - name: Set up Flutter from FVM version
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version-file: flutter/.fvmrc
+          channel: stable
+          cache: true
+
+      - name: Install Linux desktop prerequisites
+        if: matrix.target == 'linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y clang cmake ninja-build pkg-config libgtk-3-dev libstdc++-12-dev
+
+      - name: Resolve dependencies
+        run: flutter pub get
+
+      - name: Build desktop target
+        run: flutter build ${{ matrix.target }}

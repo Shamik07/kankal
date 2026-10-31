@@ -1,0 +1,53 @@
+{
+  "models": {
+    "anomaly": {
+      "sha256": "a25af5699828ca55c6710ecc191e8fc75b20e84c93a4af78116c719326ab29f4",
+      "trusted_types": [
+        "sklearn.tree._tree.Tree"
+      ]
+    },
+    "duplicates": {
+      "sha256": "01a5e87ddbcedb1eb6d76fe4130092224bd703b6559f0d50c34ac5828f3e7181",
+      "trusted_types": []
+    },
+    "forecast_mugs": {
+      "sha256": "fc0809e11cc0939e9a3546c7ae9a0ceed1452b04cf6b19f6fa60176b44854e48",
+      "trusted_types": []
+    },
+    "forecast_notebooks": {
+      "sha256": "5deee759d465f05f4ae43fbac6bdb6c2b776e373ad8a0c6ae68c2e494a28ef44",
+      "trusted_types": []
+    },
+    "phrases": {
+      "sha256": "a940740f4e42cab6cdb3194611f4e8c581f134558719c9d74c372748f6ffc4ea",
+      "trusted_types": []
+    },
+    "price": {
+      "sha256": "4e90556591721c330481e8eed1a237d953f01ec9c86db34e2e9c924a045be9d3",
+      "trusted_types": [
+        "sklearn.tree._tree.Tree"
+      ]
+    },
+    "recommendations": {
+      "sha256": "807277479284c165bb6a00c31e0da94d166dafed39c741a2273ecc0921104bf8",
+      "trusted_types": []
+    },
+    "risk": {
+      "sha256": "a87fe61594ee8a4569b681a3468434968fb9a7bb22413a128ce1251f75361b2f",
+      "trusted_types": []
+    },
+    "search": {
+      "sha256": "095f8f60178a92a3393cd1fc31eb2dab54d1dff0beebf5e2670a412a9b39c7fc",
+      "trusted_types": []
+    },
+    "tagging": {
+      "sha256": "038a3aa83d55b22855cc2d60acbda6f385b7e96105e10f053a0562cb06aa8e08",
+      "trusted_types": []
+    },
+    "topics": {
+      "sha256": "b5144a602b023b91bf2505519c02a5805948b97651e3447220f87701e0759434",
+      "trusted_types": []
+    }
+  },
+  "version": "demo-1"
+}

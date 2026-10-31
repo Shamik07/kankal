@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#101828" />
+    <title>Kankal API reference</title>
+    <style>
+      body { margin: 0; font-family: system-ui, sans-serif; }
+      .fallback { max-width: 42rem; margin: 12vh auto; padding: 0 1.5rem; line-height: 1.6; }
+      .fallback a { color: #334fb4; }
+    </style>
+  </head>
+  <body>
+    <div id="app">
+      <main class="fallback">
+        <h1>Kankal API reference</h1>
+        <p>Loading the interactive reference. You can also read the <a href="/openapi.json">OpenAPI document</a> directly.</p>
+      </main>
+    </div>
+    <noscript><p class="fallback">JavaScript is required for the interactive reference. The <a href="/openapi.json">OpenAPI document</a> is available without it.</p></noscript>
+    <script src="https://cdn.jsdelivr.net/npm/@scalar/api-reference@1.72.1"></script>
+    <script>
+      if (window.Scalar) {
+        document.getElementById('app').replaceChildren()
+        Scalar.createApiReference('#app', {
+          url: '/openapi.json',
+          layout: 'modern',
+          withDefaultFonts: false,
+          hideClientButton: true,
+          showDeveloperTools: 'never',
+        })
+      }
+    </script>
+  </body>
+</html>
