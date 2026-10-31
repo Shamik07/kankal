@@ -1,5 +1,12 @@
 # Kankal project guide
 
+## Code style
+
+- Follow [STYLE.md](STYLE.md) for language references, adopted rules, project
+  exceptions, and existing style checks. Apply it to new and changed code.
+- Project requirements and checked-in tool settings take precedence over
+  external guides. Do not make unrelated style rewrites.
+
 ## Layout and current behavior
 
 - The Flutter starter lives in `flutter/`. Run Flutter and Dart commands there.
