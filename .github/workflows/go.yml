@@ -53,7 +53,7 @@ jobs:
       - name: Validate OpenAPI contract
         run: npx --yes @redocly/cli@2.54.3 lint docs/openapi.json
       - name: Check formatting
-        run: test -z "$(gofmt -l .)"
+        run: gofmt_output=$(gofmt -l .) && test -z "$gofmt_output"
       - name: Vet
         run: go vet ./...
       - name: Install migration tool

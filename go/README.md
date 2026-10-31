@@ -75,7 +75,7 @@ Keep backups outside the database volume and protect them as user data. For prod
 ```sh
 go test -race ./...
 go vet ./...
-test -z "$(gofmt -l *.go)"
+gofmt_output=$(gofmt -l .) && test -z "$gofmt_output"
 npx --yes @redocly/cli@2.54.3 lint docs/openapi.json
 ```
 

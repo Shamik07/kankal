@@ -10,6 +10,8 @@ in the repository instead of maintaining full copies of the external guides.
   workspace's `PRODUCT.md` and `DESIGN.md` take precedence over style advice.
 - Checked-in formatter, linter, and compiler settings control automated checks.
   The rules below take precedence over external style guides.
+- Rules recorded here or in project requirements are required. Other external
+  recommendations are advisory; linking a guide does not adopt every rule in it.
 - Apply this guidance to new and changed code. Keep unrelated code unchanged;
   do not make broad style rewrites or manually edit generated code.
 - External guide updates do not automatically change project policy or tooling.
@@ -19,8 +21,8 @@ in the repository instead of maintaining full copies of the external guides.
 ## Dart and Flutter
 
 Use [Effective Dart](https://dart.dev/effective-dart) as the main reference for
-naming, documentation, language use, and API design. Respect its distinction
-between required rules and recommendations.
+naming, documentation, language use, and API design. Consult its `DO`, `PREFER`,
+and `CONSIDER` guidance when local rules do not cover a decision.
 
 Let `dart format` control formatting and keep the existing `flutter_lints`
 configuration. Keep Stacked, ViewModels, named routes, and the shared UI package
@@ -45,7 +47,7 @@ Let `gofmt` control formatting.
 From `go/`:
 
 ```sh
-test -z "$(gofmt -l .)"
+gofmt_output=$(gofmt -l .) && test -z "$gofmt_output"
 go vet ./...
 ```
 
